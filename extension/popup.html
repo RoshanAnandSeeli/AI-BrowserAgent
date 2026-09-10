@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>AI Powered Browsing Agent</title>
+		<link rel="stylesheet" href="popup.css" />
+	</head>
+	<body>
+		<main class="panel">
+			<header class="header">
+				<div class="brand"><span class="mark">✦</span><div><span class="eyebrow">Browser agent</span><h1>AI Powered Browsing Agent</h1></div></div>
+				<span class="live"><i></i> ready</span>
+			</header>
+			<section class="page-card"><span class="eyebrow">Current page</span><strong id="page-title">Reading page...</strong><span id="page-url"></span></section>
+			<label class="eyebrow" for="request">What should I do?</label>
+			<textarea id="request" rows="4" placeholder="Summarize this page, find the pricing, or explain what I am looking at..."></textarea>
+			<label class="toggle"><input id="auto-actions" type="checkbox" /><span class="checkmark"></span><span>Automatically perform AI actions</span></label>
+			<button id="ask" class="primary" type="button"><span>✦</span> Analyze page</button>
+			<p id="status" class="status" role="status">Fast mode uses the page structure first and only uses a screenshot when needed.</p>
+			<section id="result" class="result" hidden>
+				<div class="eyebrow">Agent response</div>
+				<p id="answer"></p>
+				<div id="action-wrap" hidden><div class="action-label">Suggested action</div><code id="action"></code></div>
+			</section>
+		</main>
+		<script src="popup.js"></script>
+	</body>
+</html>

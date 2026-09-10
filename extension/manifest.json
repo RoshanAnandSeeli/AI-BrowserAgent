@@ -1,0 +1,12 @@
+{
+	"manifest_version": 3,
+	"name": "AI Powered Browsing Agent",
+	"version": "0.1.0",
+	"description": "Capture the current page and ask an AI assistant for help.",
+	"permissions": ["activeTab", "scripting", "tabs"],
+	"host_permissions": ["http://localhost:3001/*"],
+	"action": {
+		"default_title": "Ask the browsing agent about this page",
+		"default_popup": "popup.html"
+	}
+}
