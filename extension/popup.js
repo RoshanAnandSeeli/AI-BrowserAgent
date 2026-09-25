@@ -1,7 +1,7 @@
 const API_URL = 'http://localhost:3001/api/agent';
 const requestInput = document.querySelector('#request');
-const askButton = document.querySelector('#ask');
-const autoActions = document.querySelector('#auto-actions');
+const summariseButton = document.querySelector('#summarise');
+const executeButton = document.querySelector('#execute');
 const status = document.querySelector('#status');
 const result = document.querySelector('#result');
 const answer = document.querySelector('#answer');
@@ -20,6 +20,11 @@ async function getActiveTab() {
 	return tab;
 }
 
+function updatePageDetails(tab) {
+	document.querySelector('#page-title').textContent = tab.title || 'Untitled page';
+	document.querySelector('#page-url').textContent = tab.url || '';
+}
+
 async function getPageContext(tabId) {
 	const [context] = await chrome.scripting.executeScript({ target: { tabId }, func: () => {
 		const clean = (value) => value.replace(/\s+/g, ' ').trim();
@@ -27,14 +32,28 @@ async function getPageContext(tabId) {
 			if (element.id) return `#${CSS.escape(element.id)}`;
 			const testId = element.getAttribute('data-testid');
 			if (testId) return `[data-testid="${CSS.escape(testId)}"]`;
-			return element.tagName.toLowerCase();
+			const parts = [];
+			let current = element;
+			while (current && current.nodeType === Node.ELEMENT_NODE && parts.length < 5) {
+				let part = current.tagName.toLowerCase();
+				if (current.getAttribute('name')) part += `[name="${CSS.escape(current.getAttribute('name'))}"]`;
+				const parent = current.parentElement;
+				if (parent) {
+					const siblings = [...parent.children].filter((child) => child.tagName === current.tagName);
+					if (siblings.length > 1) part += `:nth-of-type(${siblings.indexOf(current) + 1})`;
+				}
+				parts.unshift(part);
+				current = current.parentElement;
+			}
+			return parts.join(' > ');
 		};
 		const lines = [];
-		const important = new Set(['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'H1', 'H2', 'H3', 'LABEL', 'FORM', 'NAV', 'MAIN', 'ARTICLE', 'SECTION']);
+		const important = new Set(['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'H1', 'H2', 'H3', 'H4', 'LABEL', 'FORM', 'NAV', 'MAIN']);
 		const walk = (element, depth) => {
-			if (lines.length >= 900 || depth > 14) return;
+			if (lines.length >= 450 || depth > 12) return;
 			const text = [...element.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => clean(node.textContent ?? '')).filter(Boolean).join(' ').slice(0, 180);
-			if (important.has(element.tagName) || text) {
+			const landmark = element.getAttribute('role');
+			if (important.has(element.tagName) || ['banner', 'navigation', 'main', 'search', 'complementary', 'contentinfo'].includes(landmark)) {
 				const attrs = ['aria-label', 'placeholder', 'name', 'type', 'role'].map((name) => element.getAttribute(name) ? `${name}="${clean(element.getAttribute(name))}"` : '').filter(Boolean).join(' ');
 				const selector = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName) ? ` selector="${selectorFor(element)}"` : '';
 				lines.push(`${'  '.repeat(Math.min(depth, 8))}<${element.tagName.toLowerCase()}${attrs ? ` ${attrs}` : ''}${selector}>${text ? ` ${text}` : ''}`);
@@ -42,7 +61,7 @@ async function getPageContext(tabId) {
 			[...element.children].forEach((child) => walk(child, depth + 1));
 		};
 		if (document.body) walk(document.body, 0);
-		return { title: document.title, url: location.href, selection: window.getSelection()?.toString() ?? '', text: document.body?.innerText?.slice(0, 12000) ?? '', domSnapshot: lines.join('\n').slice(0, 30000) };
+		return { title: document.title, url: location.href, selection: window.getSelection()?.toString() ?? '', text: document.body?.innerText?.slice(0, 8000) ?? '', domSnapshot: lines.join('\n').slice(0, 16000) };
 	}});
 	return context.result;
 }
@@ -59,48 +78,67 @@ async function requestAgent(payload) {
 	return data;
 }
 
-async function askAgent() {
+async function askAgent(allowActions) {
 	const request = requestInput.value.trim();
 	if (!request) { setStatus('Write a request first.', true); requestInput.focus(); return; }
-	askButton.disabled = true; result.hidden = true; actionWrap.hidden = true; setStatus('Reading the page structure...');
+	summariseButton.disabled = true; executeButton.disabled = true; result.hidden = true; actionWrap.hidden = true; setStatus('Reading page...');
 	try {
 		const tab = await getActiveTab();
 		activeTabId = tab.id;
+		updatePageDetails(tab);
 		const page = await getPageContext(tab.id);
-		document.querySelector('#page-title').textContent = page.title || 'Untitled page';
-		document.querySelector('#page-url').textContent = page.url;
-		const payload = { request, pageText: `${page.selection}\n${page.text}`, domSnapshot: page.domSnapshot, allowActions: autoActions.checked };
+		updatePageDetails({ title: page.title, url: page.url });
+		const payload = { request, pageText: `${page.selection}\n${page.text}`, domSnapshot: page.domSnapshot, allowActions };
 		let data;
 		try { data = await requestAgent(payload); } catch (firstError) {
-			setStatus('Structure was not enough. Capturing a visual fallback...');
+			setStatus('Using visual fallback...');
 			const screenshot = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
 			data = await requestAgent({ ...payload, image: dataUrlParts(screenshot) });
 		}
 		answer.textContent = data.answer;
-		suggestedAction = autoActions.checked ? data.action ?? null : null;
+		suggestedAction = allowActions ? data.action ?? null : null;
 		if (suggestedAction) {
-			actionCode.textContent = `Action performed automatically:\n${JSON.stringify(suggestedAction, null, 2)}`;
+			actionCode.textContent = JSON.stringify(suggestedAction, null, 2);
 			actionWrap.hidden = false;
 			await performAction(suggestedAction);
-			setStatus('Analysis complete. The AI action was performed automatically.');
-		} else setStatus('Analysis complete.');
+			setStatus('Done.');
+		} else setStatus(allowActions ? 'Done. No action was needed.' : 'Done.');
 		result.hidden = false;
-	} catch (error) { setStatus(error instanceof Error ? error.message : 'Something went wrong.', true); }
-	finally { askButton.disabled = false; }
+	} catch (error) { setStatus(error instanceof Error ? error.message : 'Request failed.', true); }
+	finally { summariseButton.disabled = false; executeButton.disabled = false; }
 }
 
 async function performAction(action) {
 	if (!activeTabId) return;
 	if (action.type === 'open_url' && action.url) { await chrome.tabs.update(activeTabId, { url: action.url }); return; }
-	await chrome.scripting.executeScript({ target: { tabId: activeTabId }, args: [action], func: (browserAction) => {
+	await chrome.scripting.executeScript({ target: { tabId: activeTabId }, args: [action], func: async (browserAction) => {
 		if (browserAction.type === 'scroll') { window.scrollBy({ top: Number(browserAction.amount) || 600, behavior: 'smooth' }); return; }
 		const element = browserAction.selector ? document.querySelector(browserAction.selector) : null;
 		if (!element) throw new Error('The suggested element is no longer on the page.');
 		if (browserAction.type === 'click') element.click();
-		if (browserAction.type === 'type') { element.focus(); element.value = browserAction.text ?? ''; element.dispatchEvent(new Event('input', { bubbles: true })); element.dispatchEvent(new Event('change', { bubbles: true })); }
+		if (browserAction.type === 'type') {
+			element.focus();
+			const valueSetter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value')?.set;
+			for (const character of browserAction.text ?? '') {
+				if (valueSetter) valueSetter.call(element, element.value + character);
+				else element.value += character;
+				element.dispatchEvent(new InputEvent('input', { bubbles: true, data: character, inputType: 'insertText' }));
+				await new Promise((resolve) => setTimeout(resolve, 18));
+			}
+			if (browserAction.pressEnter) {
+				element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+				element.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+				element.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+			}
+			element.dispatchEvent(new Event('change', { bubbles: true }));
+		}
 	}});
 }
 
-askButton.addEventListener('click', askAgent);
-requestInput.addEventListener('keydown', (event) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') askAgent(); });
-getActiveTab().then((tab) => { activeTabId = tab.id; document.querySelector('#page-title').textContent = tab.title || 'Current page'; document.querySelector('#page-url').textContent = tab.url || ''; }).catch((error) => setStatus(error.message, true));
+summariseButton.addEventListener('click', () => askAgent(false));
+executeButton.addEventListener('click', () => askAgent(true));
+requestInput.addEventListener('keydown', (event) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') askAgent(false); });
+getActiveTab().then((tab) => { activeTabId = tab.id; updatePageDetails(tab); }).catch((error) => setStatus(error.message, true));
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	if (tabId === activeTabId && changeInfo.status === 'complete') updatePageDetails(tab);
+});

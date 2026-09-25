@@ -46,7 +46,7 @@ For every test, record:
 - The popup opens.
 - The title says **AI Powered Browsing Agent**.
 - The popup shows the current page title and URL.
-- The request box, checkbox, and **Analyze page** button are visible.
+- The request box, **Summarise** button, and **Execute** button are visible.
 - No provider name is shown to the user.
 
 ### Test A2: Current page metadata updates
@@ -68,7 +68,7 @@ For every test, record:
 
 1. Open the popup.
 2. Leave the request box empty.
-3. Click **Analyze page**.
+3. Click **Summarise**.
 
 **Expected result**
 
@@ -85,9 +85,9 @@ For every test, record:
 **Steps**
 
 1. Open an article or documentation page.
-2. Leave **Automatically perform AI actions** unchecked.
+2. Use **Summarise** so no browser action is allowed.
 3. Enter: `Summarize this page in three bullet points.`
-4. Click **Analyze page**.
+4. Click **Summarise**.
 
 **Expected result**
 
@@ -126,7 +126,7 @@ For every test, record:
 
 **Steps**
 
-1. Ensure **Automatically perform AI actions** is unchecked.
+1. Use **Summarise**.
 2. Ask: `Find the main call-to-action button and tell me what it says.`
 
 **Expected result**
@@ -193,7 +193,7 @@ Only use harmless test pages or a local HTML test page for these tests.
 **Steps**
 
 1. Open a long page.
-2. Check **Automatically perform AI actions**.
+2. Click **Execute**.
 3. Ask: `Scroll down to the next section.`
 
 **Expected result**
@@ -207,7 +207,7 @@ Only use harmless test pages or a local HTML test page for these tests.
 **Steps**
 
 1. Open a page with a harmless button such as `Show details`.
-2. Check **Automatically perform AI actions**.
+2. Click **Execute**.
 3. Ask: `Click the Show details button.`
 
 **Expected result**
@@ -221,7 +221,7 @@ Only use harmless test pages or a local HTML test page for these tests.
 **Steps**
 
 1. Use a harmless local test form.
-2. Check **Automatically perform AI actions**.
+2. Click **Execute**.
 3. Ask: `Type test value into the name field.`
 
 **Expected result**
@@ -235,7 +235,7 @@ Only use harmless test pages or a local HTML test page for these tests.
 **Steps**
 
 1. Open a harmless page with a known link.
-2. Check **Automatically perform AI actions**.
+2. Click **Execute**.
 3. Ask: `Open the documentation link.`
 
 **Expected result**
@@ -249,12 +249,12 @@ Do not test purchases, account changes, message sending, deletion, or form submi
 
 **Steps**
 
-1. Uncheck **Automatically perform AI actions**.
+1. Use **Summarise**.
 2. Ask for an action, such as: `Click the Show details button.`
 
 **Expected result**
 
-- The answer is shown as text.
+- The answer is shown as text and no action is performed.
 - No action is performed.
 - The page remains unchanged.
 

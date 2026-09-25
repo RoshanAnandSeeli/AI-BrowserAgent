@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent API Diagnostics</title>
+  <style>
+    :root { color: #e9edf5; background: #10131a; font-family: system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { max-width: 760px; margin: 0 auto; padding: 40px 20px; background: #10131a; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { color: #aeb8c9; line-height: 1.6; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 24px 0; }
+    .card { padding: 16px; border: 1px solid #303847; border-radius: 8px; background: #191e27; }
+    .label { color: #8491ad; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .value { margin-top: 8px; color: #f3f5fa; font-size: 18px; font-weight: 700; word-break: break-word; }
+    textarea { width: 100%; min-height: 110px; margin: 20px 0 12px; padding: 14px; resize: vertical; color: #e9edf5; border: 1px solid #3b4658; border-radius: 8px; outline: none; background: #191e27; font: inherit; line-height: 1.5; }
+    textarea:focus { border-color: #aebeff; }
+    button { padding: 12px 16px; color: #10131a; border: 0; border-radius: 7px; background: #cbd6ff; font-weight: 700; cursor: pointer; }
+    button:disabled { cursor: wait; opacity: .6; }
+    pre { min-height: 120px; padding: 16px; overflow: auto; color: #cbd6ff; border: 1px solid #303847; border-radius: 8px; background: #0b0e13; white-space: pre-wrap; }
+    .ok { color: #79d9ae; } .bad { color: #f29b9b; }
+    @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>Agent API Diagnostics</h1>
+  <p>This page checks the local server configuration and lets you send prompts directly to the configured model. It never displays the API key.</p>
+  <section class="grid">
+    <div class="card"><div class="label">Server</div><div id="server" class="value">Checking...</div></div>
+    <div class="card"><div class="label">API key</div><div id="key" class="value">Checking...</div></div>
+    <div class="card"><div class="label">Model</div><div id="model" class="value">Checking...</div></div>
+    <div class="card"><div class="label">Last test</div><div id="last" class="value">Not run</div></div>
+  </section>
+  <label class="label" for="prompt">Prompt</label>
+  <textarea id="prompt" placeholder="Ask a simple question, for example: What is 2 + 2?"></textarea>
+  <button id="run" type="button">Send prompt</button>
+  <pre id="output">Loading configuration...</pre>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const output = $('output');
+    function showValue(id, value, good) { $(id).textContent = value; $(id).className = `value ${good ? 'ok' : 'bad'}`; }
+    async function loadConfig() {
+      try {
+        const response = await fetch('/api/diagnostics');
+        const data = await response.json();
+        showValue('server', data.server, data.server === 'ok');
+        showValue('key', data.apiKeyPresent ? `Present (${data.apiKeyLength} characters)` : 'Missing', data.apiKeyPresent);
+        showValue('model', data.model, true);
+        output.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        showValue('server', 'Unreachable', false);
+        output.textContent = error.stack || error.message;
+      }
+    }
+    $('run').addEventListener('click', async () => {
+      $('run').disabled = true;
+      $('last').textContent = 'Running...';
+      output.textContent = 'Sending diagnostic request...';
+      try {
+        const response = await fetch('/api/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: $('prompt').value }) });
+        const data = await response.json();
+        $('last').textContent = data.ok ? `${data.elapsedMs} ms` : 'Failed';
+        $('last').className = `value ${data.ok ? 'ok' : 'bad'}`;
+        output.textContent = `HTTP ${response.status}\n\n${JSON.stringify(data, null, 2)}`;
+      } catch (error) {
+        $('last').textContent = 'Failed';
+        $('last').className = 'value bad';
+        output.textContent = error.stack || error.message;
+      } finally { $('run').disabled = false; }
+    });
+    loadConfig();
+  </script>
+</body>
+</html>

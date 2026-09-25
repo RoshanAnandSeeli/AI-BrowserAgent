@@ -30,6 +30,8 @@ Configure the local environment in `.env`:
 ```env
 GEMINI_API_KEY=your_api_key_here
 GEMINI_MODEL=gemini-3.6-flash
+# Optional fallback after a temporary 429/503 response.
+GEMINI_FALLBACK_MODEL=
 PORT=3001
 ```
 
@@ -59,11 +61,11 @@ The server logs appear in the terminal running `npm run server`. The project doe
 ## Current Agent Flow
 
 1. The user enters a request in the extension popup.
-2. The extension captures a compact DOM snapshot, page text, and selected text.
-3. The agent service returns a text response and optionally one browser action.
-4. If the DOM-first request fails, the extension captures the visible viewport and retries with image context.
-5. When **Automatically perform AI actions** is unchecked, the response is text-only.
-6. When it is checked, the returned action is performed automatically.
+2. The extension refreshes the active page title and URL, then captures a compact DOM snapshot, page text, and selected text.
+3. **Summarise** requests a text-only response.
+4. **Execute** permits one browser action, including typing into a field and pressing Enter for searches.
+5. If the DOM-first request fails, the extension captures the visible viewport and retries with image context.
+6. Page metadata is refreshed again after navigation when the popup remains open.
 
 The normal request is DOM-first. A request contains:
 
@@ -81,6 +83,8 @@ Supported actions:
 - `type`
 - `scroll`
 - `open_url`
+
+Search requests use a specific input selector, type the value through input events, and dispatch Enter key events so page search handlers can run.
 
 ## Safety Notes
 
@@ -110,6 +114,10 @@ npm run server
 
 Then reload the unpacked extension from the browser extensions page.
 
-### Automatic actions do not run
+### Execute does not run an action
 
-Confirm that **Automatically perform AI actions** is checked. When it is unchecked, the agent is intentionally restricted to a text-only response.
+Use **Execute** instead of **Summarise**. Summarise intentionally requests a text-only response.
+
+### The model is busy or quota-limited
+
+The server can try `GEMINI_FALLBACK_MODEL` after temporary `429` or `503` responses. Fallback models may still share the same project quota. The extension displays a short retry message instead of the full provider stack trace.

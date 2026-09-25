@@ -16,9 +16,13 @@ This record covers the browser extension project only.
 - Added visible-viewport screenshot fallback when DOM context is insufficient.
 - Added structured agent responses with optional browser actions.
 - Added `click`, `type`, `scroll`, and `open_url` action support.
-- Added the **Automatically perform AI actions** checkbox.
-- Added text-only behavior when automatic actions are disabled.
-- Added automatic action execution when the checkbox is enabled.
+- Added separate **Summarise** and **Execute** controls.
+- Added text-only behavior for summarisation.
+- Added automatic action execution for explicit Execute requests.
+- Added search-field typing with per-character input events and Enter key dispatch.
+- Added active-page metadata refresh after navigation.
+- Reduced DOM snapshots to actionable controls, headings, landmarks, and bounded text.
+- Added configurable fallback model handling for temporary provider overloads.
 - Added handling for restricted browser pages.
 - Removed provider branding from the extension-facing interface.
 - Added extension validation and a manual test plan.
