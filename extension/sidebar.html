@@ -10,16 +10,13 @@
 		<main class="panel">
 			<header class="header">
 				<div class="brand"><span class="mark">✦</span><div><span class="eyebrow">Browser agent</span><h1>AI Powered Browsing Agent</h1></div></div>
-				<div class="header-actions"><button id="pin" class="icon-button" type="button" title="Open sidebar" aria-label="Open sidebar">▣</button><span class="live"><i></i> ready</span></div>
+				<div class="header-actions"><button id="pin" class="icon-button" type="button" title="Sidebar is open" aria-label="Sidebar is open">▣</button><span class="live"><i></i> ready</span></div>
 			</header>
 			<section class="page-card"><span class="eyebrow">Current page</span><strong id="page-title">Reading page...</strong><span id="page-url"></span></section>
 			<label class="eyebrow" for="request">What should I do?</label>
-			<textarea id="request" rows="4" placeholder="Summarize this page, find the pricing, or explain what I am looking at..."></textarea>
-			<div class="actions">
-				<button id="summarise" class="secondary" type="button">Summarise</button>
-				<button id="execute" class="primary" type="button"><span>✦</span> Execute</button>
-			</div>
-			<p id="status" class="status" role="status">Fast mode uses the page structure first and only uses a screenshot when needed.</p>
+			<textarea id="request" rows="5" placeholder="Summarize this page, find the pricing, or explain what I am looking at..."></textarea>
+			<div class="actions"><button id="summarise" class="secondary" type="button">Summarise</button><button id="execute" class="primary" type="button"><span>✦</span> Execute</button></div>
+			<p id="status" class="status" role="status">Fast mode uses local browser tasks and compact page context.</p>
 			<section id="agent-progress" class="agent-progress" hidden>
 				<div class="eyebrow">Active goal</div><p id="agent-goal" class="agent-goal"></p>
 				<div class="action-label">Plan and progress</div><ol id="agent-plan" class="agent-plan"></ol>
@@ -30,11 +27,7 @@
 					<button id="stop-agent" class="secondary" type="button" hidden>Stop Agent</button>
 				</div>
 			</section>
-			<section id="result" class="result" hidden>
-				<div class="result-heading"><div class="eyebrow">Agent response</div><button id="copy" class="copy-button" type="button">Copy</button></div>
-				<p id="answer"></p>
-				<div id="action-wrap" hidden><div class="action-label">Executed action</div><code id="action"></code></div>
-			</section>
+			<section id="result" class="result" hidden><div class="result-heading"><div class="eyebrow">Agent response</div><button id="copy" class="copy-button" type="button">Copy</button></div><p id="answer"></p><div id="action-wrap" hidden><div class="action-label">Executed action</div><code id="action"></code></div></section>
 		</main>
 		<script src="popup.js"></script>
 	</body>

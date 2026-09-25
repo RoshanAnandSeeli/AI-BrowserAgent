@@ -3,10 +3,28 @@
 	"name": "AI Powered Browsing Agent",
 	"version": "0.1.0",
 	"description": "Capture the current page and ask an AI assistant for help.",
-	"permissions": ["activeTab", "scripting", "tabs"],
+	"permissions": ["activeTab", "scripting", "tabs", "storage", "sidePanel"],
 	"host_permissions": ["http://localhost:3001/*"],
 	"action": {
 		"default_title": "Ask the browsing agent about this page",
 		"default_popup": "popup.html"
+	},
+	"background": {
+		"service_worker": "background.js"
+	},
+	"commands": {
+		"_execute_action": {
+			"suggested_key": {
+				"default": "Ctrl+Shift+Y",
+				"mac": "Command+Shift+Y"
+			},
+			"description": "Open the AI Powered Browsing Agent popup"
+		},
+		"open-agent": {
+			"description": "Open the AI Powered Browsing Agent sidebar"
+		}
+	},
+	"side_panel": {
+		"default_path": "sidebar.html"
 	}
 }

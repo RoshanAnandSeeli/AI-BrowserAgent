@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Browser Agent Test Fixture</title>
+  <style>
+    body { max-width: 760px; margin: 40px auto; padding: 0 20px; font: 16px/1.55 system-ui, sans-serif; color: #202634; }
+    section { margin: 28px 0; padding: 20px; border: 1px solid #ccd2dc; border-radius: 10px; }
+    label, input, button { display: block; margin: 8px 0; }
+    input { width: min(100%, 420px); padding: 10px; }
+    button { padding: 9px 14px; cursor: pointer; }
+    #long-content { min-height: 1150px; padding-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Browser Agent Test Fixture</h1>
+  <p>This local page contains harmless controls for checking search, click, observation, scrolling, and multi-step replanning.</p>
+
+  <section aria-label="Local search">
+    <h2>Search fixture items</h2>
+    <form id="fixture-search" role="search">
+      <label for="fixture-query">Search items</label>
+      <input id="fixture-query" name="q" type="search" placeholder="Search items">
+      <button type="submit">Search</button>
+    </form>
+    <p id="search-result" aria-live="polite">No search has been run.</p>
+  </section>
+
+  <section>
+    <h2>Fixture links</h2>
+    <ul>
+      <li><a href="#article-cedar">Cedar tree care guide</a></li>
+      <li><a href="#article-maple">Maple tree care guide</a></li>
+      <li><a href="#article-oak">Oak tree care guide</a></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Harmless state change</h2>
+    <button id="toggle-detail" type="button" aria-expanded="false">Show fixture detail</button>
+    <p id="fixture-detail" hidden>The fixture detail is visible. This confirms the button action completed.</p>
+  </section>
+
+  <main id="long-content">
+    <h2>Long page content</h2>
+    <p id="article-cedar">Cedar trees grow best in well drained soil and benefit from regular watering while young.</p>
+    <p id="article-maple">Maple trees prefer consistent moisture and a layer of mulch around the root zone.</p>
+    <p id="article-oak">Oak trees are long lived and should be planted where their mature canopy has room to spread.</p>
+    <h2>End of fixture content</h2>
+    <p>The bottom section provides a scroll target and a fresh observation point after the page moves.</p>
+  </main>
+
+  <script>
+    document.querySelector('#fixture-search').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const query = document.querySelector('#fixture-query').value.trim();
+      document.querySelector('#search-result').textContent = query ? `Results for: ${query}` : 'Enter a search term.';
+    });
+    document.querySelector('#toggle-detail').addEventListener('click', (event) => {
+      const button = event.currentTarget;
+      const detail = document.querySelector('#fixture-detail');
+      const expanded = button.getAttribute('aria-expanded') !== 'true';
+      button.setAttribute('aria-expanded', String(expanded));
+      button.textContent = expanded ? 'Hide fixture detail' : 'Show fixture detail';
+      detail.hidden = !expanded;
+    });
+  </script>
+</body>
+</html>

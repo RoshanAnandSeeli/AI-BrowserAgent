@@ -47,6 +47,7 @@ For every test, record:
 - The title says **AI Powered Browsing Agent**.
 - The popup shows the current page title and URL.
 - The request box, **Summarise** button, and **Execute** button are visible.
+- A pin/sidebar button is visible.
 - No provider name is shown to the user.
 
 ### Test A2: Current page metadata updates
@@ -75,6 +76,51 @@ For every test, record:
 - No request is sent.
 - The popup shows a clear message such as `Write a request first.`
 - The request box receives focus.
+
+### Test A4: State survives popup close
+
+**Steps**
+
+1. Enter a request and run **Summarise**.
+2. Close the popup.
+3. Open the popup again on the same page.
+
+**Expected result**
+
+- The request and latest response are restored.
+
+### Test A5: Copy response
+
+**Steps**
+
+1. Run **Summarise**.
+2. Click **Copy** beside the response.
+3. Paste into a text editor.
+
+**Expected result**
+
+- The complete answer is copied to the clipboard.
+
+### Test A6: Open persistent sidebar
+
+**Steps**
+
+1. Click the pin/sidebar button in the popup.
+
+**Expected result**
+
+- The browser side panel opens.
+- The same agent interface is available without the popup closing when focus changes.
+
+### Test A7: Keyboard shortcut
+
+**Steps**
+
+1. Press `Ctrl+Shift+Y` on Windows/Linux or `Command+Shift+Y` on macOS.
+
+**Expected result**
+
+- The AI browsing agent side panel opens for the active tab.
 
 ---
 
@@ -139,7 +185,19 @@ For every test, record:
 
 ## C. DOM-First Performance
 
-### Test C1: DOM-first request
+### Test C1: Local Google shortcut
+
+**Steps**
+
+1. Use **Execute**.
+2. Enter `google kangaroos in australia`.
+
+**Expected result**
+
+- The extension opens Google with the encoded query.
+- No DOM scan, screenshot, or model request is needed.
+
+### Test C2: DOM-first request
 
 **Steps**
 
@@ -153,7 +211,7 @@ For every test, record:
 - The agent returns an answer without requiring a screenshot.
 - The response is faster than a screenshot-based request on the same page.
 
-### Test C2: Large or complex page
+### Test C3: Large or complex page
 
 **Steps**
 
@@ -166,7 +224,7 @@ For every test, record:
 - The request completes using the bounded page text and DOM snapshot.
 - The response does not contain an unreasonably large payload or crash.
 
-### Test C3: Screenshot fallback
+### Test C4: Screenshot fallback
 
 **Steps**
 
@@ -243,9 +301,54 @@ Only use harmless test pages or a local HTML test page for these tests.
 - The active tab navigates to the intended URL.
 - The URL is correct.
 
+### Test D5: Search a mail in Gmail
+
+**Steps**
+
+1. Open Gmail with a test account and no sensitive messages visible.
+2. Click **Execute** and ask: `Search Gmail for the subject quarterly test.`
+
+**Expected result**
+
+- The DOM snapshot includes the visible Gmail search control with its accessible name or placeholder and a unique selector.
+- The agent fills the search field, replacing any previous query, and submits it.
+- No message is opened, sent, or changed.
+
+### Test D6: Open the first organic Google result
+
+**Steps**
+
+1. Open a Google results page for a harmless query.
+2. Click **Execute** and ask: `Open the first organic search result.`
+
+**Expected result**
+
+- The snapshot includes result link text and its destination, including text nested inside the link.
+- The agent clicks the first organic result, not an advertisement or navigation link.
+- The resulting destination matches the link shown in the snapshot.
+
 Do not test purchases, account changes, message sending, deletion, or form submission with automatic mode enabled.
 
-### Test D5: Automatic mode disabled
+### Test D8: Planner, action, fresh observation, and replan
+
+**Setup**
+
+1. Open `http://localhost:3001/agent-fixture`.
+2. Use **Execute** with a multi-step request such as: `Show the fixture detail, then search for cedar, then open the Cedar tree care guide.`
+
+**Expected result**
+
+- The progress area shows the goal, plan, and current step.
+- Each action is followed by a fresh page observation before another action is selected.
+- The detail text appears, fixture search results update, and the Cedar link is opened in order.
+- Closing the popup and reopening it allows the run to be resumed from the latest page state.
+- **Stop** prevents further steps. No run executes more than 10 actions or retries a failed/unverified step more than twice.
+
+### Test D9: Consequential action confirmation
+
+Use a harmless fixture or mock page with a control labeled `Delete item` (do not connect it to real data). Confirm that the action pauses for explicit user confirmation and that **Stop** cancels it.
+
+### Test D7: Automatic mode disabled
 
 **Steps**
 
@@ -358,6 +461,21 @@ Do not test purchases, account changes, message sending, deletion, or form submi
 - The action fails with a readable message.
 - No unrelated element is changed.
 
+### Test F5: Large page context stays bounded
+
+**Steps**
+
+1. Open a long page with many links and paragraphs.
+2. Submit a task that mentions a distinctive phrase appearing in a later section.
+3. Inspect the request payload in local DevTools, avoiding any private page content in shared logs.
+
+**Expected result**
+
+- The request contains only the current task, not prior popup requests or answers.
+- Page text contains a small set of relevant excerpts, not the full page.
+- The DOM snapshot is capped at 5,000 characters and prioritizes fields and relevant links.
+- No repeated context accumulates across requests.
+
 ---
 
 ## G. Privacy and Product Identity
@@ -384,6 +502,19 @@ Do not test purchases, account changes, message sending, deletion, or form submi
 **Expected result**
 
 - No private API key is present in the extension package.
+
+### Test G3: Popup keyboard shortcut
+
+**Steps**
+
+1. Reload the unpacked extension after changing the manifest.
+2. Open `chrome://extensions/shortcuts` and confirm the AI Powered Browsing Agent action is assigned `Ctrl+Shift+Y` (or assign an available shortcut).
+3. Focus a normal browser tab and press the assigned shortcut.
+
+**Expected result**
+
+- The extension popup opens. The pin button remains the path to the side panel.
+- If the command is unassigned, resolve the shortcut in the browser's shortcuts page.
 - The extension calls the local agent endpoint instead.
 
 ### Test G3: Page data scope

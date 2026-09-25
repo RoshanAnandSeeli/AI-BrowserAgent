@@ -5,6 +5,7 @@ body { width: 360px; min-height: 480px; margin: 0; background: radial-gradient(c
 button, textarea { font: inherit; }
 .panel { padding: 22px; }
 .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
 .brand { display: flex; gap: 10px; align-items: center; }
 .mark { display: grid; width: 32px; height: 32px; place-items: center; color: #10131a; border-radius: 8px; background: #d8e2ff; font-size: 17px; }
 h1 { max-width: 220px; margin: 4px 0 0; color: #f7f8fc; font-size: 17px; line-height: 1.15; letter-spacing: -.04em; }
@@ -19,6 +20,8 @@ textarea { display: block; width: 100%; margin: 8px 0 12px; padding: 12px; resiz
 textarea:focus { border-color: #8194d0; box-shadow: 0 0 0 3px rgba(129,148,208,.12); }
 textarea::placeholder { color: #707a8c; }
 button { border: 0; border-radius: 7px; cursor: pointer; font-size: 12px; font-weight: 700; }
+.icon-button, .copy-button { padding: 6px 8px; color: #aebbe0; border: 1px solid #46536e; background: transparent; font-size: 10px; }
+.icon-button:hover, .copy-button:hover { background: #202a3e; }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 2px; }
 .primary, .secondary { width: 100%; padding: 12px; }
 .primary { color: #10131a; background: #cbd6ff; }
@@ -28,7 +31,17 @@ button { border: 0; border-radius: 7px; cursor: pointer; font-size: 12px; font-w
 .primary:disabled { cursor: wait; opacity: .55; }
 .primary span { margin-right: 6px; }
 .status { margin: 10px 0 0; color: #727d91; font-family: 'DM Mono', monospace; font-size: 9px; line-height: 1.5; }
+.agent-progress { margin-top: 14px; padding: 12px; border: 1px solid #303847; border-radius: 8px; background: #151a23; }
+.agent-goal { margin: 6px 0 14px; color: #e3e7ee; font-size: 12px; line-height: 1.45; }
+.agent-plan { display: grid; gap: 6px; margin: 7px 0 12px; padding-left: 18px; color: #aeb8c9; font-size: 10px; line-height: 1.45; }
+.agent-plan li[data-state="completed"] { color: #79d9ae; }
+.agent-plan li[data-state="failed"] { color: #f29b9b; }
+.agent-plan li[data-state="running"] { color: #dce3f4; }
+.agent-current-step { margin: 8px 0 10px; color: #b9c8fb; font-size: 10px; line-height: 1.5; }
+.agent-controls { display: flex; gap: 7px; flex-wrap: wrap; }
+.agent-controls button { width: auto; padding: 8px 10px; font-size: 10px; }
 .result { margin-top: 18px; padding-top: 17px; border-top: 1px solid #2b3340; }
+.result-heading { display: flex; justify-content: space-between; align-items: center; }
 .result p { margin: 8px 0 16px; color: #e3e7ee; font-size: 12px; line-height: 1.65; }
 .action-label { margin-bottom: 6px; color: #9ca8bd; font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; }
 code { display: block; overflow: auto; padding: 9px; color: #b9c8fb; border: 1px solid #303c59; border-radius: 6px; background: #151b29; font-family: 'DM Mono', monospace; font-size: 9px; white-space: pre-wrap; }
